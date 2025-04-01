@@ -1,0 +1,50 @@
+import praw
+from openai import OpenAI
+
+# authenticate with the Reddit API, this is the general developer mode not associated with my user
+reddit = praw.Reddit(
+    client_id="L60RZl-KqUZ7ZWYoVKEHFA",
+    client_secret="TA1gdFkJsf5ft7s-ZFBhsYfY3mvvUw",
+    user_agent="RedditScraper:v1.0 (by/u/Ok_Particular551)"
+)
+
+def scrapePosts(subredditName):
+    subreddit = reddit.subreddit(subredditName)
+    #make empty list to hold valid subreddit posts
+    allPosts = []
+    for currPost in subreddit.hot(limit=None):
+        #add the title and text together into one string
+        allPosts.append(currPost.title + " " + currPost.selftext)
+    #f-string to allow embedded expressions
+    #len(allPosts) returns the length of the list of postsin the subreddit
+    print(f"Scraped {len(allPosts)} posts from the top posts in r/callcentres.")
+    return allPosts
+
+#filter posts
+def filter_posts(posts, keywords, matchesLimit = 100):
+    filtered = []
+    for post in posts:
+        #.lower() converts all the text to lower case. 
+        #function, if any keyword in my list apears in the post, then add it to the valid list
+        if any(keyword.lower() in post.lower() for keyword in keywords):
+            filtered.append(post)
+        #if matches are over the limit, break
+        if len(filtered) >= matchesLimit:
+            break
+    print(f"Filtered {len(filtered)} posts with keywords.")
+    return filtered
+
+def main():
+    subredditName = "callcentres"
+    keywords = ["emergency", "emergency call", "emergency operator", "911 operator", "911 operators"]
+    scrapedPosts = scrapePosts(subredditName)
+    #print(f"Fetched {len(posts)} posts.")
+    filteredPosts = filter_posts(scrapedPosts, keywords, matchesLimit=100)
+    #print(f"Fetched {len(posts)} posts.")
+    for currPost in filteredPosts:
+        print(f"Original text of post:{currPost} \n")
+
+#call main function
+if __name__ == "__main__":
+    main()
+
